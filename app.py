@@ -12,18 +12,18 @@ import os
 from dotenv import load_dotenv
 
 
-# Cargar variables de entorno desde el archivo .env
+# Load environment variables from the .env file
 load_dotenv()
 
-# Obtener la clave de la API de YouTube desde las variables de entorno
+# Retrieve the YouTube API key from environment variables
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 
-# Cargar el modelo XGBoost desde el archivo pickle
+# Load XGBoost model from pickle file
 modelo_path = os.path.join(os.path.dirname(__file__), os.getenv("MODELO_PATH"))
 with open(modelo_path, 'rb') as file:
     model = pickle.load(file)
 
-# Cargar el vectoriza
+# Load the vectorizer
 vectorizer_path = os.path.join(os.path.dirname(__file__), os.getenv("VECTORIZER_PATH"))
 with open(vectorizer_path, 'rb') as file:
     vectorizer = pickle.load(file)  
@@ -31,7 +31,7 @@ with open(vectorizer_path, 'rb') as file:
 stopword = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
-# Función de preprocesamiento
+# Preprocessing function
 def preprocess_text(text):
 
     # Convert text to lowercase
@@ -55,7 +55,7 @@ def preprocess_text(text):
 
     return text
 
-# Obtener comentarios del video
+# Get comments from the video
 def get_video_comments(youtube_api_key, video_id):
     youtube = build('youtube', 'v3', developerKey=youtube_api_key)
     request = youtube.commentThreads().list(
@@ -76,69 +76,69 @@ def get_video_comments(youtube_api_key, video_id):
 image_path = 'img/youtube.jpg'  
 img = Image.open(image_path)
 
-# Redimensionar la imagen al 50% del tamaño original
+# Resize the image to 50% of the original size
 new_size = (img.width // 5, img.height // 5)
 resized_img = img.resize(new_size)
 
-# Mostrar la imagen redimensionada
+# Display the resized image
 st.image(resized_img)
 
-# Título de la aplicación
+# App Title
 st.title("Detector de Comentarios Tóxicos")
 
-# Entrada del ID del video
+# Video ID Input
 video_id_input = st.text_input('Ingresa el ID del video de YouTube:', key='video_id')
 
-# Botones para obtener y limpiar comentarios en una sola fila
+# Buttons to fetch and clear comments in a single row
 obtener_comentarios_btn, limpiar_comentarios_btn = st.columns(2)
 
-# Espacio en blanco para mostrar comentarios
+# Space to display comments
 empty_space = st.empty()
 
-# Verificar si se hizo clic en el botón "Obtener Comentarios"
+# Check if the 'Get Comments' button was clicked
 if obtener_comentarios_btn.button("Obtener Comentarios", help="Haz clic para obtener comentarios del video"):
-    # Verificar que se haya ingresado un ID de video
+    # Check that a video ID has been entered
     if video_id_input:
-        # Obtener comentarios del video
+        # Get video comments
         comments = get_video_comments(youtube_api_key, video_id_input)
 
-        # Analizar comentarios
+        # Analyze comments
         for comment in comments:
-            # Preprocesar el comentario
+            # Preprocess coments
             preprocessed_comment = preprocess_text(comment)
 
-            # Vectorizar el comentario preprocesado
+            # Vectorize
             comment_vectorized = vectorizer.transform([preprocessed_comment])
 
-            # Realizar la predicción
+            # Predict
             prediction = model.predict(comment_vectorized)
 
-            # Mostrar el resultado
+            # Result
             if prediction[0] == 1:
                 st.error(f"Comentario tóxico: {comment}")
             else:
                 st.success(f"Comentario no tóxico: {comment}")
 
-# Verificar si se hizo clic en el botón "Limpiar Comentarios"
+# Check if the 'Clean Comments' button was clicked
 if limpiar_comentarios_btn.button("Limpiar Comentarios", help="Haz clic para limpiar los comentarios mostrados"):
     empty_space.text("Comentarios limpiados.")
 
 
-# Entrada de texto en la barra lateral para introducir un comentario
+# Text input in the sidebar to enter a comment
 st.sidebar.title("Análisis de Comentarios")
 user_comment = st.sidebar.text_area("Introduce un comentario para analizar:")
 if st.sidebar.button("Analizar Comentario", help="Haz clic para analizar el comentario"):
     if user_comment:
-        # Preprocesar el comentario
+        # Preprocess
         preprocessed_user_comment = preprocess_text(user_comment)
 
-        # Vectorizar el comentario preprocesado
+        # Vectorize
         user_comment_vectorized = vectorizer.transform([preprocessed_user_comment])
 
-        # Realizar la predicción
+        # Predict
         user_comment_prediction = model.predict(user_comment_vectorized)
 
-        # Mostrar el resultado
+        # Result
         if user_comment_prediction[0] == 1:
             st.sidebar.error("Este comentario es tóxico.")
         else:
