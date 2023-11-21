@@ -18,12 +18,12 @@ load_dotenv()
 # Obtener la clave de la API de YouTube desde las variables de entorno
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 
-# Cargar el modelo AdaBoost desde el archivo pickle
+# Cargar el modelo XGBoost desde el archivo pickle
 modelo_path = os.path.join(os.path.dirname(__file__), os.getenv("MODELO_PATH"))
 with open(modelo_path, 'rb') as file:
     model = pickle.load(file)
 
-# Cargar el vectorizador
+# Cargar el vectoriza
 vectorizer_path = os.path.join(os.path.dirname(__file__), os.getenv("VECTORIZER_PATH"))
 with open(vectorizer_path, 'rb') as file:
     vectorizer = pickle.load(file)  
